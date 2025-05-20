@@ -110,17 +110,14 @@ export default function Home() {
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
-
       mediaRecorder.ondataavailable = (e) => {
         chunksRef.current.push(e.data);
       };
-
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
         await transcribeAudio(audioBlob);
         stream.getTracks().forEach((track) => track.stop());
       };
-
       mediaRecorder.start();
       setIsRecording(true);
     } catch (error) {
@@ -141,12 +138,10 @@ export default function Home() {
       const formData = new FormData();
       const file = new File([audioBlob], 'audio.webm', { type: 'audio/webm' });
       formData.append('file', file);
-
       const response = await fetch('/api/speech', {
         method: 'POST',
         body: formData,
       });
-
       const data = await response.json();
       setInput(data.text);
     } catch (error: any) {
@@ -164,7 +159,6 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       });
-
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
@@ -178,7 +172,6 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-
     const userMessage: Message = {
       role: 'user',
       content: input.trim(),
@@ -186,11 +179,9 @@ export default function Home() {
       id: `user-${Date.now()}`,
       isFloating: true,
     };
-
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -202,9 +193,7 @@ export default function Home() {
           })),
         }),
       });
-
       const assistantMessage = await response.json();
-
       setMessages((prev) => [
         ...prev,
         {
@@ -231,136 +220,65 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-black relative">
-      <div className="container mx-auto max-w-4xl px-4 py-8">
-        <div className="bg-white rounded-xl shadow-xl overflow-hidden relative">
+    <div className="min-h-screen bg-black font-mono text-green-500 relative">
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute top-0 left-0 w-full h-full object-cover opacity-30 blur-md z-0"
+      >
+        <source src="/Dijiang.mp4" type="video/mp4" />
+      </video>
+
+      <div className="container mx-auto max-w-4xl px-4 py-8 relative z-10">
+        <div className="bg-black border border-green-700 rounded-xl shadow-xl overflow-hidden">
           <div className="h-[700px] flex flex-col">
-
-            {/* 背景视频区域 */}
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute top-0 left-0 w-full h-full object-cover opacity-30 blur-md z-0"
-            >
-              <source src="/Dijiang.mp4" type="video/mp4" />
-            </video>
-
-            {/* 头部标题栏 */}
-            <div className="p-4 bg-blue-50 border-b border-blue-200 relative z-10">
-              <h1 className="text-2xl font-semibold text-gray-800">Talk to Dijiang</h1>
-              <p className="text-sm text-gray-600">A mythic cloud bot with no face</p>
+            <div className="p-4 border-b border-green-700">
+              <h1 className="text-xl text-green-400">===[ Dijiang Terminal Interface ]===</h1>
             </div>
 
-            {/* 聊天内容 */}
-            <div className="flex-1 relative overflow-y-auto">
-              <div className="relative z-10 p-4 space-y-6">
-                {messages.slice(1).map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex items-start space-x-2 ${
-                      message.role === 'user' ? 'justify-end' : 'justify-start'
-                    }`}
-                  >
-                    {message.role === 'assistant' && (
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Bot size={20} className="text-blue-600" />
-                      </div>
-                    )}
-
-                    <div
-                      className={`flex flex-col max-w-[70%] ${
-                        message.role === 'user' ? 'items-end' : 'items-start'
-                      }`}
-                    >
-                      <div
-                        className={`rounded-2xl p-4 ${
-                          message.role === 'user'
-                            ? 'bg-blue-500 text-white' + (message.isFloating ? ' animate-bounce' : '')
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap">{message.content}</p>
-                      </div>
-
-                      {message.role === 'assistant' && (
-                        <button
-                          onClick={() => speakText(message.content)}
-                          className="mt-2 text-gray-500 hover:text-gray-700 transition-colors"
-                          aria-label="Text to speech"
-                        >
-                          <Volume2 size={16} />
-                        </button>
-                      )}
-
-                      {message.timestamp && (
-                        <span className="text-xs text-gray-500 mt-1">
-                          {new Date(message.timestamp).toLocaleTimeString()}
-                        </span>
-                      )}
-                    </div>
-
-                    {message.role === 'user' && (
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                        <User size={20} className="text-gray-600" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {isLoading && (
-                  <div className="flex justify-start items-center space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Bot size={20} className="text-blue-600" />
-                    </div>
-                    <div className="bg-gray-100 rounded-2xl p-4">
-                      <div className="flex space-x-2">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div ref={messagesEndRef} />
-              </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.slice(1).map((message) => (
+                <div key={message.id} className={`text-sm whitespace-pre-wrap ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
+                  <span className="block px-3 py-2 rounded-md border border-green-600 bg-black/30">
+                    {message.content}
+                  </span>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="text-left px-3 py-2 border border-green-600 bg-black/30 rounded-md">
+                  ▍
+                </div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
 
-            {/* 输入区 */}
-            <div className="p-4 bg-white border-t border-gray-200 relative z-10">
-              <form onSubmit={handleSubmit} className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Talk to Dijiang, the mythic cloud bot"
-                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={isRecording ? stopRecording : startRecording}
-                  className={`p-3 rounded-lg transition-colors ${
-                    isRecording
-                      ? 'bg-red-500 hover:bg-red-600 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
-                  disabled={isLoading}
-                >
-                  {isRecording ? <Square size={20} /> : <Mic size={20} />}
-                </button>
-                <button
-                  type="submit"
-                  className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!input.trim() || isLoading}
-                >
-                  <Send size={20} />
-                </button>
-              </form>
-            </div>
-
+            <form onSubmit={handleSubmit} className="flex items-center gap-2 p-4 border-t border-green-800">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder=">> ask Dijiang something..."
+                className="flex-1 px-4 py-2 rounded bg-black border border-green-600 text-green-500 placeholder-green-700 focus:outline-none"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={isRecording ? stopRecording : startRecording}
+                className={`p-2 border rounded ${isRecording ? 'border-red-600 text-red-600' : 'border-green-600 text-green-600'}`}
+                disabled={isLoading}
+              >
+                {isRecording ? <Square size={16} /> : <Mic size={16} />}
+              </button>
+              <button
+                type="submit"
+                className="p-2 border border-green-600 text-green-600 rounded hover:bg-green-900"
+                disabled={!input.trim() || isLoading}
+              >
+                <Send size={16} />
+              </button>
+            </form>
           </div>
         </div>
       </div>
