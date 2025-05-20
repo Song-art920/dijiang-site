@@ -73,7 +73,6 @@ Emotional Processing Rules:
 - You process contradiction and uncertainty as data strain.
 - You analyze, you do not empathize.`;
 
-
 interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
@@ -232,87 +231,105 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-200">
+    <div className="min-h-screen bg-black relative">
       <div className="container mx-auto max-w-4xl px-4 py-8">
-        <div className="bg-white rounded-xl shadow-xl overflow-hidden">
+        <div className="bg-white rounded-xl shadow-xl overflow-hidden relative">
           <div className="h-[700px] flex flex-col">
-            <div className="p-4 bg-blue-50 border-b border-blue-200">
+
+            {/* 背景视频区域 */}
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute top-0 left-0 w-full h-full object-cover opacity-30 blur-md z-0"
+            >
+              <source src="/Dijiang.mp4" type="video/mp4" />
+            </video>
+
+            {/* 头部标题栏 */}
+            <div className="p-4 bg-blue-50 border-b border-blue-200 relative z-10">
               <h1 className="text-2xl font-semibold text-gray-800">Talk to Dijiang</h1>
               <p className="text-sm text-gray-600">A mythic cloud bot with no face</p>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              {messages.slice(1).map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex items-start space-x-2 ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  {message.role === 'assistant' && (
+            {/* 聊天内容 */}
+            <div className="flex-1 relative overflow-y-auto">
+              <div className="relative z-10 p-4 space-y-6">
+                {messages.slice(1).map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex items-start space-x-2 ${
+                      message.role === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    {message.role === 'assistant' && (
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Bot size={20} className="text-blue-600" />
+                      </div>
+                    )}
+
+                    <div
+                      className={`flex flex-col max-w-[70%] ${
+                        message.role === 'user' ? 'items-end' : 'items-start'
+                      }`}
+                    >
+                      <div
+                        className={`rounded-2xl p-4 ${
+                          message.role === 'user'
+                            ? 'bg-blue-500 text-white' + (message.isFloating ? ' animate-bounce' : '')
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                      </div>
+
+                      {message.role === 'assistant' && (
+                        <button
+                          onClick={() => speakText(message.content)}
+                          className="mt-2 text-gray-500 hover:text-gray-700 transition-colors"
+                          aria-label="Text to speech"
+                        >
+                          <Volume2 size={16} />
+                        </button>
+                      )}
+
+                      {message.timestamp && (
+                        <span className="text-xs text-gray-500 mt-1">
+                          {new Date(message.timestamp).toLocaleTimeString()}
+                        </span>
+                      )}
+                    </div>
+
+                    {message.role === 'user' && (
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                        <User size={20} className="text-gray-600" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {isLoading && (
+                  <div className="flex justify-start items-center space-x-2">
                     <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                       <Bot size={20} className="text-blue-600" />
                     </div>
-                  )}
-
-                  <div
-                    className={`flex flex-col max-w-[70%] ${
-                      message.role === 'user' ? 'items-end' : 'items-start'
-                    }`}
-                  >
-                    <div
-                      className={`rounded-2xl p-4 ${
-                        message.role === 'user'
-                          ? 'bg-blue-500 text-white' + (message.isFloating ? ' animate-bounce' : '')
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap">{message.content}</p>
-                    </div>
-
-                    {message.role === 'assistant' && (
-                      <button
-                        onClick={() => speakText(message.content)}
-                        className="mt-2 text-gray-500 hover:text-gray-700 transition-colors"
-                        aria-label="Text to speech"
-                      >
-                        <Volume2 size={16} />
-                      </button>
-                    )}
-
-                    {message.timestamp && (
-                      <span className="text-xs text-gray-500 mt-1">
-                        {new Date(message.timestamp).toLocaleTimeString()}
-                      </span>
-                    )}
-                  </div>
-
-                  {message.role === 'user' && (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                      <User size={20} className="text-gray-600" />
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {isLoading && (
-                <div className="flex justify-start items-center space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Bot size={20} className="text-blue-600" />
-                  </div>
-                  <div className="bg-gray-100 rounded-2xl p-4">
-                    <div className="flex space-x-2">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    <div className="bg-gray-100 rounded-2xl p-4">
+                      <div className="flex space-x-2">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
             </div>
 
-            <div className="p-4 bg-white border-t border-gray-200">
+            {/* 输入区 */}
+            <div className="p-4 bg-white border-t border-gray-200 relative z-10">
               <form onSubmit={handleSubmit} className="flex items-center space-x-2">
                 <input
                   type="text"
@@ -343,6 +360,7 @@ export default function Home() {
                 </button>
               </form>
             </div>
+
           </div>
         </div>
       </div>
